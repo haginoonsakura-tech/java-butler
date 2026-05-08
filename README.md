@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 📋 個人管家
 
 > 整合日程管理、記帳、待辦事項、重複事件提醒的個人生活管理系統。
@@ -185,3 +186,7 @@ erDiagram
 ## Demo
 
 ![demo1](./doc/images/demo1.png)
+=======
+# java-butler
+A simple personal assistant app built with Java.
+>>>>>>> 84bd5d607454cda26a6feed757fb3200f34ff647

@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 ### Java template
+=======
+>>>>>>> 84bd5d607454cda26a6feed757fb3200f34ff647
 # Compiled class file
 *.class
 
@@ -23,6 +26,7 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
+<<<<<<< HEAD
 
 ### JEnv template
 # JEnv local Java version configuration file
@@ -115,3 +119,5 @@ javadoc/
 
 # lock file, a part of Oracle Credential Store Framework
 cwallet.sso.lck
+=======
+>>>>>>> 84bd5d607454cda26a6feed757fb3200f34ff647
