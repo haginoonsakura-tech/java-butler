@@ -79,8 +79,43 @@ classDiagram
     }
 ```
 
-## ERD（資料庫關聯圖）
-缺
+## 🗄️ ERD（資料庫關聯圖）
+
+```mermaid
+erDiagram
+    EVENT ||--o{ HABIT : "可轉換成"
+    EVENT ||--o{ TRANSACTION : "可轉換成"
+    
+    EVENT {
+        varchar id PK
+        varchar title
+        varchar rule_type
+        int interval
+        varchar unit
+        text description
+        timestamp last_completed
+        timestamp created_at
+    }
+
+    HABIT {
+        varchar id PK
+        varchar name
+        int target_times_per_month
+        int completed_this_month
+        date last_completed_date
+        timestamp created_at
+    }
+
+    TRANSACTION {
+        varchar id PK
+        varchar description
+        decimal amount
+        varchar category
+        varchar payment_type
+        date transaction_date
+        timestamp created_at
+    }
+```
 
 ---
 
