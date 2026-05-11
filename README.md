@@ -3,190 +3,126 @@
 
 > 整合日程管理、記帳、待辦事項、重複事件提醒的個人生活管理系統。
 
-## 🏗️ 專案架構
+## 專案簡介
 
-```
-java-butler/
-├── src/main/java/com.java.butler/
-│   ├── Main.java                    ← 程式入口
-│   ├── config/
-│   │   └── DatabaseConfig.java      ← JDBC 連線設定
-│   ├── model/
-│   │   ├── enums/
-│   │   │   ├── Category.java        ← 類別列舉（請改成你的分類）
-│   │   │   └── Status.java          ← 狀態列舉（請改成你的狀態流程）
-│   │   ├── User.java                ← 使用者（可直接沿用）
-│   │   └── Item.java                ← 核心物件（請改名+改屬性）
-│   ├── dao/
-│   │   ├── UserDAO.java             ← 使用者 CRUD（可直接沿用）
-│   │   └── ItemDAO.java             ← 核心物件 CRUD（請改 SQL）
-│   ├── service/
-│   │   └── ItemService.java         ← 業務邏輯（驗證、權限）
-│   └── view/
-│       └── MainView.java            ← CLI 選單（請改選單文字）
-├── sql/
-│   └── schema.sql                   ← 建表 + 種子資料（請改表格）
-├── run.sh                           ← Mac/Linux 一鍵執行
-└── run.bat                          ← Windows 一鍵執行
-```
+**期望解決的問題：**
+- 傳統 ToDo List 缺少習慣統計功能
+- 容易忘記「上次什麼時候做某件事」（Last Time）
+- 每月固定事項需要重複建立
+- 希望有一個簡單且持久的個人生活管家
 
-## 🚀 如何使用
+**核心功能：**
+- 習慣養成追蹤 + 每月完成次數統計
+- 支援循環規則（每週、隔週、每月固定日期、非固定）
+- Last Time 自動記錄機制
+- 簡單記帳（現金 / 信用卡分類）
 
-### 1. 建立資料庫
+**適合對象：** 需要長期管理生活習慣與事務的學生與上班族。
 
-```bash
-# 建立 PostgreSQL 資料庫（Docker 方式）
-docker run -d --name mydb -p 5432:5432 \
-  -e POSTGRES_PASSWORD=postgres \
-  -e POSTGRES_DB=myproject \
-  postgres:16
+---
 
-# 匯入資料表
-psql -U postgres -h localhost -d myproject -f sql/schema.sql
-```
-
-### 2. 編譯 & 執行
-
-```bash
-chmod +x run.sh
-./run.sh
-```
-
-### 3. 測試帳號
-
-| 帳號 | 密碼 | 角色 |
-|------|------|------|
-| admin | admin | 管理者 |
-| demo | demo | 一般使用者 |
-
-## 📐 架構說明
-
-```
-View（畫面）  →  Service（邏輯）  →  DAO（資料庫）  →  PostgreSQL
-  ↑ Scanner         ↑ 驗證/判斷         ↑ SQL/JDBC
-  ↓ println         ↓ 回傳結果         ↓ 回傳 Model
-```
-
-### 各層職責
-
-| 層 | 職責 | 可以做 | 不能做 |
-|----|------|--------|--------|
-| **View** | 使用者互動 | Scanner / println / 選單 | 寫 SQL |
-| **Service** | 業務邏輯 | 驗證 / 計算 / 呼叫 DAO | 碰 Scanner |
-| **DAO** | 資料存取 | SQL / JDBC / 回傳 Model | 業務判斷 |
-| **Model** | 資料結構 | 屬性 / Getter / 業務方法 | 碰資料庫 |
-
-## 📝 修改步驟（同學照做）
-
-1. **改 package 名稱**：把 `com.template` 改成 `com.你的專題`
-2. **改 Enum**：`Category` → 你的分類、`Status` → 你的狀態流程
-3. **改 Model**：`Item` → 你的核心物件（例如 `Rose`、`Room`、`Bill`）
-4. **改 SQL**：`schema.sql` 裡的 `items` 表改成你的資料表
-5. **改 DAO**：`ItemDAO` 的 SQL 和 `mapRow()` 對應新欄位
-6. **改 Service**：驗證規則改成你的業務需求
-7. **改 View**：選單文字和操作流程
-
-## 📊 類別圖（Mermaid）
+## 🏗️ 系統架構（Class Diagram）
 
 ```mermaid
 classDiagram
-    class User {
-        -int id
-        -String username
-        -String role
-        +isAdmin() boolean
-    }
-    class Item {
-        -int id
-        -String name
-        -Category category
-        -Status status
-        -String description
-        -int priority
-        +archive() void
-        +display() String
-    }
-    class Category {
-        <<enumeration>>
-        GENERAL
-        URGENT
-        IMPORTANT
-        LOW
-    }
-    class Status {
-        <<enumeration>>
-        ACTIVE
-        ARCHIVED
-        DELETED
-    }
-    class UserDAO {
-        +register() int
-        +login() User
-    }
-    class ItemDAO {
-        +insert() int
-        +findById() Item
-        +findByOwner() List~Item~
-        +update() boolean
-        +softDelete() boolean
-    }
-    class ItemService {
-        +createItem() List~String~
-        +getMyItems() List~Item~
-        +updateItem() boolean
-        +deleteItem() boolean
-    }
-    class MainView {
-        -Scanner scanner
-        -User currentUser
-        +start() void
+    class Event {
+        +String id
+        +String title
+        +RecurringRule rule
+        +LocalDateTime lastCompleted
+        +shouldDisplayInNext7Days()
     }
 
-    Item --> Category
-    Item --> Status
-    MainView --> ItemService
-    ItemService --> ItemDAO
-    MainView --> UserDAO
-    ItemDAO ..> Item : creates
-    UserDAO ..> User : creates
+    class Habit {
+        +String id
+        +String name
+        +int targetTimesPerMonth
+        +int completedThisMonth
+        +LocalDate lastCompletedDate
+    }
+
+    class Transaction {
+        +String id
+        +String description
+        +BigDecimal amount
+        +String category
+        +String paymentType
+    }
+
+    class RecurringRule {
+        <<interface>>
+        +nextOccurrenceAfter(LocalDateTime)
+        +shouldDisplayInNext7Days()
+    }
+
+    Event --> RecurringRule
+    RecurringRule <|-- RecurringRule
+    RecurringRule <|-- OneTimeRule
+```
+---
+
+## 🚀 如何啟動專案
+
+### 1. 啟動 PostgreSQL（使用 Docker）
+
+```Bash
+docker run --name mydb -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=myproject -p 5433:5432 -d postgres:16
 ```
 
-## 📊 ERD（Mermaid）
+### 2.建立資料表
+執行 sql/schema.sql 中的 SQL 指令（已包含初始測試資料）
 
-```mermaid
-erDiagram
-    users ||--o{ items : owns
-    items ||--o{ item_logs : has
+### 3.執行程式
 
-    users {
-        int id PK
-        string username UK
-        string password_hash
-        string role
-    }
-    items {
-        int id PK
-        string name
-        string category
-        string status
-        string description
-        int priority
-        int owner_id FK
-    }
-    item_logs {
-        int id PK
-        int item_id FK
-        string action
-        string note
-    }
+```Bash
+# Windows
+run.bat
+
+# Mac / Linux
+./run.sh
+```
+
+主程式入口： Main.java
+
+---
+
+# 📐 專案結構
+
+```text
+java-butler/
+├── sql/
+│   └── schema.sql                    ← 建表 + 測試資料
+├── src/main/java/com/java/butler/
+│   ├── Main.java
+│   ├── config/
+│   │   └── DatabaseConfig.java
+│   ├── model/          # Event, Habit, Transaction, RecurringRule...
+│   ├── dao/            # EventDAO
+│   ├── service/        # 業務邏輯層
+│   └── view/           # MainView（CLI 選單）
+├── README.md
+├── run.bat
+├── run.sh
+└── .gitignore
 ```
 
 ---
 
-## Demo
+# 技術要點與亮點
 
-![demo1](./doc/images/demo1.png)
-=======
-# java-butler
-A simple personal assistant app built with Java.
->>>>>>> 84bd5d607454cda26a6feed757fb3200f34ff647
+- **MVC 分層架構**（Model / DAO / Service / View）
+- **物件導向設計：** 抽象類別、介面、Enum、多型
+- **Strategy Pattern**（循環規則引擎）
+- **JDBC + PreparedStatement**（防止 SQL Injection）
+- **try-with-resources** 確保資源釋放
+- **Docker** 部署 PostgreSQL 資料庫
+
+---
+
+# CLI 操作截圖（Demo）
+（請在此處插入 3 張以上截圖）
+
+- 主選單畫面
+- 新增習慣 / 查看本週待辦
+- 習慣統計功能
+- 記帳功能
