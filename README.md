@@ -1,68 +1,62 @@
 # 📋 個人管家
 
-> 以 **Java + PostgreSQL** 開發的個人生活管理系統，幫助使用者長期追蹤習慣、日程與生活事務。
+以 **Java + PostgreSQL** 開發的**可高度自訂**個人生活追蹤系統，專注於彈性打卡、長期管理與有溫度的生命記錄。
 
-**適合對象：** 需要長期管理生活習慣與事務的學生與上班族。
+使用者可根據自身需求開啟或關閉各項功能模組。
 
-## 專案簡介
-
-本系統讓使用者可以建立各類 **任務 / 習慣**，系統會自動記錄執行日期、類別、狀態，並提供強大的 **查詢與覆盤** 功能。
+> **適合對象：** 需要長期管理生活方方面面的任何人。
 
 ---
 
-### **核心解決問題：**
-- 替你記得「上次什麼時候做某件事」
-- 輕鬆統計習慣次數
-- 免去固定、非固定事項在完成後需要重新建立
+## ✨基礎功能：追蹤任務、循環提醒、Last Time  
+   - 自訂各種統計項目：習慣、挑戰、目標、學習進度、療癒打卡等。
+   - 除了每週、每月固定循環外，也支援專案進度過半、完成第Ｎ次挑戰等非固定排程。
+   - 輕鬆查找任務的最後執行時間，自動顯示過去時間或未來倒數。
 
-### **主要功能：**
+## ✨特色功能：個人化日記、虛擬管家、遊戲挑戰
 
-1. **任務 / 習慣建立與管理**  
-   使用者可建立任務，設定類別（身體、心靈、財務、家務等）、金額（記帳用）、狀態與循環規則。
-
-
-2. **循環規則引擎**  
-   支援多種循環方式：每日、週、月等固定週期，乃至不固定的每 X 天 / X 週 / X 月等。
-
-
-3. **Last Time**  
-   自動記錄每種事件（以任務命名為關鍵字）最後一次執行的時間。包括而不限於習慣養成。
-
-
-4. **習慣統計與覆盤**
-    - 特定期間（預設一個月，可自定義）內某項目的**累積完成次數**
-    - **距離現在的間隔時間**（支援顯示：X 日 → X 月 / 年 又 X 天 → X.X 月 / 年）
-
-
-5. **記帳功能**  
-   記錄消費行為，並可依現金、銀行卡、自訂類別查詢該期間的金額統計。
-
-### **技術要點：**
-
-- **MVC 分層架構**（Model / DAO / Service / View）
-- **物件導向設計：** 抽象類別、介面、Enum、多型
-- **Strategy Pattern**（循環規則引擎）
-- **JDBC + PreparedStatement**（防止 SQL Injection）
-- **try-with-resources** 確保資源釋放
+   - 支援多種記事類型：子彈筆記、心情日記、孕期紀錄、辭職倒數、頭痛日記等。
+   - 可依個人喜好於撰寫時提供星座運勢、媽祖抽籤、領袖名言等心靈鼓勵內容。
+   - 「去年的今天」——歷史比較：可查看過去同一天或特定日期的日記，幫助使用者看見自己的成長軌跡。
+   - 輔助總結與覆盤：開放匿名資料讓「 AI 管家」進行深度年度分析與生命反思。
+   - 模組設計與社群分享：可自行上傳圖片美化介面、客製化模板、匿名留言板等。
+   - 重要資料加密儲存：卡號、餘額、借貸紀錄等敏感金融資料採用 AES 加密儲存。
+   - 「Let's Play」——獎勵&懲罰遊戲模組，給使用者更有動力達成目標。
 
 ---
 
-## 🏗️ 系統架構
+## 💡 技術要點與亮點
+
+- **Java 17** + **PostgreSQL** + **JDBC**
+- **Strategy Pattern**：實現彈性循環規則引擎
+- **AES 加密**：重要金融資料（卡號、餘額、借貸）安全儲存
+- **模組化設計**：功能可自由開啟/關閉，資料保留在後台
+- **分層架構**：Model / DAO / Service / View
+- **同一天歷史比較**：日記成長軌跡分析
+- **可擴展性**：支援 AI 輔助總結與社群分享功能
+
+## 🏗️ 系統架構（Class Diagram）
 
 ```mermaid
 classDiagram
-    class Event {
+    class Trackable {
         +String id
         +String title
+        +String category
         +RecurringRule rule
+        +int completionCount
         +LocalDateTime lastCompleted
+        +markAsCompleted()
+        +getIntervalSinceLast()
     }
 
-    class Habit {
+    class Diary {
         +String id
-        +String name
-        +int targetTimesPerMonth
-        +int completedThisMonth
+        +String type
+        +String content
+        +LocalDate diaryDate
+        +String inspirationQuote
+        +getHistoricalSameDay(int yearsAgo)
     }
 
     class Transaction {
@@ -71,49 +65,70 @@ classDiagram
         +BigDecimal amount
         +String category
         +String paymentType
+        +Date transactionDate
     }
 
     class RecurringRule {
         <<interface>>
-        +nextOccurrenceAfter()
+        +LocalDateTime nextOccurrenceAfter(LocalDateTime lastTime)
+        +boolean shouldDisplayInNext7Days()
     }
-```
+
+    class AbstractRecurringRule {
+        <<abstract>>
+        +String description
+    }
+
+    class RecurrenceType {
+        <<enumeration>>
+        WEEKLY
+        BIWEEKLY
+        MONTHLY
+        EVERY_X_DAYS
+        ONE_TIME
+    }
+
+    Trackable --> RecurringRule
+    AbstractRecurringRule --|> RecurringRule
+    RecurringRule <|-- AbstractRecurringRule
+    Trackable ||--o{ Diary
+    Trackable ||--o{ Transaction
+
+    note for Trackable "核心追蹤物件（習慣、挑戰、目標等）"
+    note for Diary "支援同一天歷史比較"
+````
 
 ## 🗄️ ERD（資料庫關聯圖）
 
 ```mermaid
 erDiagram
-    EVENT ||--o{ HABIT : "可轉換成"
-    EVENT ||--o{ TRANSACTION : "可轉換成"
-    
-    EVENT {
+    TRACKABLE ||--o{ DIARY : "產生"
+    TRACKABLE ||--o{ TRANSACTION : "關聯"
+
+    TRACKABLE {
         varchar id PK
         varchar title
+        varchar category
         varchar rule_type
-        int interval
-        varchar unit
-        text description
         timestamp last_completed
         timestamp created_at
     }
 
-    HABIT {
+    DIARY {
         varchar id PK
-        varchar name
-        int target_times_per_month
-        int completed_this_month
-        date last_completed_date
+        varchar trackable_id FK
+        varchar type
+        text content
+        date diary_date
         timestamp created_at
     }
 
     TRANSACTION {
         varchar id PK
-        varchar description
+        varchar trackable_id FK
         decimal amount
         varchar category
         varchar payment_type
-        date transaction_date
-        timestamp created_at
     }
 ```
 
@@ -123,16 +138,19 @@ erDiagram
 
 ```text
 java-butler/
-├── sql/schema.sql
+├── sql/
+│   └── schema.sql
 ├── src/main/java/com/java/butler/
-│   ├── model/      # Event, Habit, Transaction, RecurringRule...
-│   ├── dao/        # EventDAO
-│   ├── service/    # 業務邏輯
-│   ├── view/       # CLI 介面
-│   └── config/
+│   ├── Main.java
+│   ├── config/
+│   ├── model/           # Trackable, Diary, Transaction, RecurringRule...
+│   ├── dao/             # DAO 資料存取層
+│   ├── service/         # 業務邏輯層
+│   └── view/            # CLI 使用者介面
 ├── README.md
 ├── run.bat
-└── run.sh
+├── run.sh
+└── .gitignore
 ```
 
 ---
@@ -173,8 +191,17 @@ chmod +x run.sh
 
 ---
 
-# CLI 操作截圖（Demo）
-（請在此處插入 3 張以上截圖）
+# CLI 操作截圖
+## 🎥 Demo 操作畫面
+
+### 1. 主選單
+![主選單](./doc/images/demo1.png)
+
+### 2. 新增習慣
+![新增習慣](./doc/images/demo2.png)
+
+### 3. 查看本週待辦與統計
+![統計畫面](./doc/images/demo3.png)
 
 - 主選單畫面
 - 新增習慣 / 查看本週待辦
